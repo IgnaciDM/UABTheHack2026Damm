@@ -32,21 +32,26 @@ def update_ai_config(payload: object) -> dict:
         raise RequestError("El endpoint y el modelo deben ser texto.")
     if raw_model is not None and not isinstance(raw_model, str):
         raise RequestError("El endpoint y el modelo deben ser texto.")
+
+    base_url = raw_base_url.strip() if raw_base_url is not None else None
+    if base_url is not None:
+        parsed = urlparse(base_url)
+        if parsed.scheme not in {"https", "http"} or not parsed.netloc:
+            raise RequestError("El endpoint debe ser una URL HTTP o HTTPS válida.")
+
+    model = raw_model.strip() if raw_model is not None else None
+    if model is not None and (not model or len(model) > 120):
+        raise RequestError("Introduce el identificador del modelo.")
+
+    api_key = api_key.strip()
     with AI_CONFIG_LOCK:
-        if api_key.strip():
-            AI_CONFIG["api_key"] = api_key.strip()
-            os.environ["UTH_KEY"] = api_key.strip()
-        if raw_base_url is not None:
-            base_url = raw_base_url.strip()
-            parsed = urlparse(base_url)
-            if parsed.scheme not in {"https", "http"} or not parsed.netloc:
-                raise RequestError("El endpoint debe ser una URL HTTP o HTTPS válida.")
+        if api_key:
+            AI_CONFIG["api_key"] = api_key
+            os.environ["UTH_KEY"] = api_key
+        if base_url is not None:
             AI_CONFIG["base_url"] = base_url
             os.environ["AI_BASE_URL"] = base_url
-        if raw_model is not None:
-            model = raw_model.strip()
-            if not model or len(model) > 120:
-                raise RequestError("Introduce el identificador del modelo.")
+        if model is not None:
             AI_CONFIG["model"] = model
             os.environ["AI_MODEL"] = model
     if typeform_token.strip():

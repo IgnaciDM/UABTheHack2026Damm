@@ -4,7 +4,6 @@ import csv
 import io
 import json
 import math
-import os
 import random
 import statistics
 import unicodedata
@@ -139,7 +138,9 @@ def request_llm_insights(
     Envía el JSON determinista al modelo Ornith del DCC de la UAB (o endpoint compatible) para obtener el informe cualitativo.
     Si no hay API key configurada o falla la red, devuelve una síntesis determinista estructurada de alta precisión.
     """
-    api_key = api_key or os.environ.get("UTH_KEY") or os.environ.get("GEMINI_API_KEY") or os.environ.get("AI_API_KEY", "")
+    if api_key is None:
+        with AI_CONFIG_LOCK:
+            api_key = AI_CONFIG["api_key"]
 
     try:
         payload_data = json.loads(statistical_json)
@@ -194,12 +195,11 @@ def request_llm_insights(
                 "payload_estadistico_utilizado": payload_data,
             }
     except urllib.error.HTTPError as e:
-        error_detail = e.read().decode("utf-8")
-        print(f"[LLM Insights Warning] HTTP {e.code}: {error_detail}. Usando síntesis determinista.")
+        print(f"[LLM Insights Warning] HTTP {e.code}. Usando síntesis determinista.")
         return {
             "modo": "fallback_http_error",
             "informe_markdown": _generate_deterministic_fallback_synthesis(payload_data),
-            "error_detail": f"HTTP {e.code}: {error_detail}",
+            "error_detail": f"HTTP {e.code}",
             "payload_estadistico_utilizado": payload_data,
         }
     except Exception as e:

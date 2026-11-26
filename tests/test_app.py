@@ -1,6 +1,9 @@
 import json
+import os
+import runpy
 import unittest
 from datetime import date
+from pathlib import Path
 from unittest.mock import patch
 
 from backend import app
@@ -93,6 +96,12 @@ class AggregateTests(unittest.TestCase):
 
 
 class QuestionTests(unittest.TestCase):
+    def test_startup_without_api_credentials_uses_local_mode(self):
+        with patch.dict(os.environ, {"UTH_KEY": " ", "GEMINI_API_KEY": "", "AI_API_KEY": ""}):
+            startup_config = runpy.run_path(str(Path(app.__file__).with_name("common.py")))
+
+        self.assertEqual(startup_config["AI_CONFIG"]["api_key"], "")
+
     def test_question_generation_has_explicit_demo_mode_without_key(self):
         with patch.dict(app.AI_CONFIG, {"api_key": ""}):
             result = app.generate_question({"dimension": "bienestar", "site": "Fábrica"})

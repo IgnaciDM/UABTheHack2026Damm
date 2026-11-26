@@ -92,13 +92,12 @@ st.markdown("""
 st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/2/25/Estrella_Damm_logo.png", width=140) if False else None
 st.sidebar.markdown("### ⭐ Panel de Control LLM")
 
-default_api_key = os.environ.get("UTH_KEY", "")
 api_key_input = st.sidebar.text_input(
     "API Key (UTH_KEY)",
-    value=default_api_key,
     type="password",
     help="Clave del Gateway LLM de la UAB (variable de entorno UTH_KEY)."
 )
+effective_key = api_key_input.strip() or os.environ.get("UTH_KEY", "").strip()
 
 base_url = "https://dcc-llm-gw.uab.cat/uabthehack/v1"
 model_name = "ornith"
@@ -286,9 +285,9 @@ if btn_generar:
         st.error("⚠️ Por favor, introduce una necesidad o temática antes de generar las encuestas.")
     elif not colectivos_seleccionados:
         st.error("⚠️ Debes seleccionar al menos un Colectivo Objetivo.")
+    elif not effective_key:
+        st.error("Introduce tu clave API en el panel lateral o configura UTH_KEY.")
     else:
-        effective_key = api_key_input.strip() or os.environ.get("UTH_KEY", "dummy-key")
-        
         # Inicialización del cliente OpenAI según especificación
         client = OpenAI(
             base_url=base_url,

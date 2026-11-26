@@ -55,10 +55,9 @@ DEMO_QUESTIONS = {
 }
 AI_CONFIG = {
     "api_key": (
-        os.environ.get("UTH_KEY")
-        or os.environ.get("GEMINI_API_KEY")
-        or os.environ.get("AI_API_KEY")
-        or "uth-ba946ba792cd29e62479fefbdf737003a1080cc0"
+        os.environ.get("UTH_KEY", "").strip()
+        or os.environ.get("GEMINI_API_KEY", "").strip()
+        or os.environ.get("AI_API_KEY", "").strip()
     ),
     "base_url": os.environ.get(
         "AI_BASE_URL", "https://dcc-llm-gw.uab.cat/uabthehack/v1/chat/completions"
